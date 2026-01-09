@@ -1,0 +1,33 @@
+{
+  "name": "bmi-calculator-tests",
+  "version": "1.0.0",
+  "description": "Automated tests for BMI Calculator web application using Playwright and TypeScript",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report",
+    "test:chromium": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:webkit": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project='Mobile Chrome'",
+    "install:browsers": "playwright install",
+    "test:bmi": "playwright test tests/bmi",
+    "lint": "npx playwright test --dry-run"
+  },
+  "keywords": [
+    "playwright",
+    "typescript",
+    "automation",
+    "testing",
+    "bmi-calculator"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.9.1",
+    "typescript": "^5.9.3"
+  }
+}
