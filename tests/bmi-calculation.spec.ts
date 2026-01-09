@@ -14,7 +14,7 @@ test.describe('BMI Calculator - Acceptance Criteria #1', () => {
     await TestHelpers.waitForStablePage(page);
   });
 
-  test('should calculate BMI correctly using formula: weight_kg / (height_m)^2', async ({ page }) => {
+  test('should calculate BMI correctly using formula: weight_kg / (height_m)^2', { tag: ['@smoke'] }, async ({ page }) => {
     for (const testCase of testData.testData.validBMITests) {
       // clear inputs before each test case
       await bmiPage.clearHeight();
@@ -24,7 +24,7 @@ test.describe('BMI Calculator - Acceptance Criteria #1', () => {
       await bmiPage.enterWeight(testCase.weight);
       await bmiPage.clickCalculate();
 
-      await bmiPage.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+      await bmiPage.waitForBmiResult();
 
       const expectedBmi = BmiCalculatorPage.calculateExpectedBmi(
         testCase.weight,
@@ -32,14 +32,16 @@ test.describe('BMI Calculator - Acceptance Criteria #1', () => {
       );
 
       const displayedBmi = await bmiPage.getBmiValue();
+      const displayedCategory = await bmiPage.getBmiCategory();
 
-      // verify the calculated BMI matches expected (allowing for rounding)
-      expect(displayedBmi).toBeCloseTo(expectedBmi, 1);
-      expect(expectedBmi).toBeCloseTo(testCase.expectedBMI, 1);
+      expect(displayedBmi, `BMI value should match expected for height ${testCase.height}cm, weight ${testCase.weight}kg`).toBeCloseTo(expectedBmi, 1);
+      expect(expectedBmi, `Expected BMI should match test data`).toBeCloseTo(testCase.expectedBMI, 1);
+      // Verify category is displayed (app may use different terminology like "mild thinness" vs "Underweight")
+      expect(displayedCategory, `BMI category should be displayed for ${testCase.category}`).not.toBe('');
     }
   });
 
-  test('should handle height conversion from cm to meters correctly', async ({ page }) => {
+  test('should handle height conversion from cm to meters correctly', { tag: ['@regression'] }, async ({ page }) => {
     const weight = 70;
     const heightCm = 175;
     const expectedHeightM = 1.75;
@@ -49,13 +51,13 @@ test.describe('BMI Calculator - Acceptance Criteria #1', () => {
     await bmiPage.enterWeight(weight);
     await bmiPage.clickCalculate();
 
-    await bmiPage.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+    await bmiPage.waitForBmiResult();
 
     const displayedBmi = await bmiPage.getBmiValue();
     const calculatedBmi = BmiCalculatorPage.calculateExpectedBmi(weight, heightCm);
 
-    expect(calculatedBmi).toBeCloseTo(expectedBmi, 2);
-    expect(calculatedBmi).toBeCloseTo(22.86, 1);
-    expect(displayedBmi).toBeCloseTo(calculatedBmi, 1);
+    expect(calculatedBmi, 'Height conversion should use height_m = height_cm / 100').toBeCloseTo(expectedBmi, 2);
+    expect(calculatedBmi, 'Calculated BMI should match expected value').toBeCloseTo(22.86, 1);
+    expect(displayedBmi, 'Displayed BMI should match calculated value').toBeCloseTo(calculatedBmi, 1);
   });
 });

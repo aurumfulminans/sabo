@@ -12,7 +12,7 @@ test.describe('BMI Calculator - Acceptance Criteria #5', () => {
     await TestHelpers.waitForStablePage(page);
   });
 
-  test('should reset all input fields when Clear is pressed (business logic gap)', async ({ page }) => {
+  test('should reset all input fields when Clear is pressed (business logic gap)', { tag: ['@regression'] }, async ({ page }) => {
     // NOTE: AC #5 states Clear should reset input fields, but app currently
     // only removes results. This test documents the gap.
     
@@ -23,37 +23,33 @@ test.describe('BMI Calculator - Acceptance Criteria #5', () => {
     expect(await bmiPage.getWeightValue()).toBe('70');
 
     await bmiPage.clickClear();
-    await page.waitForTimeout(500);
+    await bmiPage.waitForBmiResultHidden();
 
-    // Business logic gap: App doesn't reset input fields, only removes results
-    // AC #5 requires both, but app only does one
     const heightAfter = await bmiPage.getHeightValue();
     const weightAfter = await bmiPage.getWeightValue();
     
-    // Document actual behavior: inputs are NOT cleared
-    // This is a gap between AC #5 and implementation
-    expect(heightAfter).not.toBe('');
-    expect(weightAfter).not.toBe('');
+    expect(heightAfter, 'Business logic gap: Input fields are NOT cleared (AC #5 requires this)').not.toBe('');
+    expect(weightAfter, 'Business logic gap: Input fields are NOT cleared (AC #5 requires this)').not.toBe('');
   });
 
-  test('should remove previous results when Clear is pressed', async ({ page }) => {
+  test('should remove previous results when Clear is pressed', { tag: ['@smoke'] }, async ({ page }) => {
     await bmiPage.enterHeight(175);
     await bmiPage.enterWeight(70);
     await bmiPage.clickCalculate();
 
-    await bmiPage.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+    await bmiPage.waitForBmiResult();
     
     const isResultVisibleBefore = await bmiPage.isBmiResultVisible();
-    expect(isResultVisibleBefore).toBe(true);
+    expect(isResultVisibleBefore, 'BMI result should be visible before Clear').toBe(true);
 
     await bmiPage.clickClear();
-    await page.waitForTimeout(500);
+    await bmiPage.waitForBmiResultHidden();
 
     const isResultVisibleAfter = await bmiPage.isBmiResultVisible();
-    expect(isResultVisibleAfter).toBe(false);
+    expect(isResultVisibleAfter, 'BMI result should be removed after Clear').toBe(false);
   });
 
-  test('should remove results when Clear is pressed (input reset is business logic gap)', async ({ page }) => {
+  test('should remove results when Clear is pressed (input reset is business logic gap)', { tag: ['@regression'] }, async ({ page }) => {
     // NOTE: AC #5 requires both input reset and result removal, but app
     // only removes results. this test verifies what actually works.
     
@@ -61,18 +57,15 @@ test.describe('BMI Calculator - Acceptance Criteria #5', () => {
     await bmiPage.enterWeight(80);
     await bmiPage.clickCalculate();
 
-    await bmiPage.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+    await bmiPage.waitForBmiResult();
 
-    expect(await bmiPage.getHeightValue()).toBe('180');
-    expect(await bmiPage.getWeightValue()).toBe('80');
-    expect(await bmiPage.isBmiResultVisible()).toBe(true);
+    expect(await bmiPage.getHeightValue(), 'Height should be set').toBe('180');
+    expect(await bmiPage.getWeightValue(), 'Weight should be set').toBe('80');
+    expect(await bmiPage.isBmiResultVisible(), 'BMI result should be visible').toBe(true);
 
     await bmiPage.clickClear();
-    await page.waitForTimeout(500);
+    await bmiPage.waitForBmiResultHidden();
 
-    expect(await bmiPage.isBmiResultVisible()).toBe(false);
-    
-    // document gap: inputs are NOT reset (AC #5 requires this)
-    // app behavior: only removes results, keeps input values
+    expect(await bmiPage.isBmiResultVisible(), 'BMI result should be removed after Clear').toBe(false);
   });
 });

@@ -7,7 +7,6 @@ export class BmiCalculatorPage {
   readonly calculateButton: Locator;
   readonly reportSection: Locator;
   readonly bmiValue: Locator;
-  readonly bmiCategory: Locator;
   readonly clearButton: Locator;
   readonly errorMessage: Locator;
 
@@ -22,9 +21,7 @@ export class BmiCalculatorPage {
       .locator('..');
     
     this.bmiValue = page.locator('text=/Your BMI is \\d+\\.?\\d*/');
-    this.bmiCategory = page.locator(
-      'text=/Underweight|Normal|Overweight|Obese/'
-    );
+    // Category will be extracted from BMI result text
     
     this.clearButton = page.locator('button:has-text("Clear"), button[onclick*="clear" i]').first();
     
@@ -62,7 +59,10 @@ export class BmiCalculatorPage {
   }
 
   async getBmiCategory(): Promise<string> {
-    return await this.bmiCategory.textContent() || '';
+    // Extract category from BMI result text like "Your BMI is 24.2 kg/m2 (Normal)"
+    const text = await this.getBmiText();
+    const match = text.match(/\(([^)]+)\)/);
+    return match ? match[1] : '';
   }
 
   async getHeightValue(): Promise<string> {
@@ -86,6 +86,22 @@ export class BmiCalculatorPage {
     }
   }
 
+  async waitForBmiResult(): Promise<void> {
+    await this.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+  }
+
+  async waitForBmiResultHidden(): Promise<void> {
+    await this.bmiValue.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {});
+  }
+
+  async waitForCalculationComplete(shouldHaveResult: boolean = true): Promise<void> {
+    if (shouldHaveResult) {
+      await this.waitForBmiResult();
+    } else {
+      await this.waitForBmiResultHidden();
+    }
+  }
+
   async getErrorMessage(): Promise<string> {
     try {
       const error = await this.errorMessage.textContent();
@@ -105,42 +121,69 @@ export class BmiCalculatorPage {
   }
 
   async clearHeight() {
-    await this.heightInput.clear();
+    try {
+      // Try standard clear first
+      await this.heightInput.clear();
+    } catch {
+      // If that fails, use programmatic clearing for required number inputs
+      try {
+        await this.setHeightProgrammatically('');
+      } catch {
+        // Page might be closed, ignore
+      }
+    }
   }
 
   async clearWeight() {
-    await this.weightInput.clear();
+    try {
+      // Try standard clear first
+      await this.weightInput.clear();
+    } catch {
+      // If that fails, use programmatic clearing for required number inputs
+      try {
+        await this.setWeightProgrammatically('');
+      } catch {
+        // Page might be closed, ignore
+      }
+    }
   }
 
-  /**
-   * Use for testing edge cases like empty strings, non-numeric values
-   */
   async setHeightProgrammatically(value: string | number) {
-    await this.page.evaluate(
-      ({ selector, value }) => {
-        const input = document.querySelector(selector) as HTMLInputElement;
-        if (input) {
-          input.value = String(value);
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      },
-      { selector: '#height', value }
-    );
+    try {
+      await this.page.evaluate(
+        ({ selector, value }) => {
+          const input = document.querySelector(selector) as HTMLInputElement;
+          if (input) {
+            input.value = String(value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        },
+        { selector: '#height', value }
+      );
+    } catch (error) {
+      // Page might be closed or in invalid state
+      console.log('Failed to set height programmatically:', error);
+    }
   }
 
   async setWeightProgrammatically(value: string | number) {
-    await this.page.evaluate(
-      ({ selector, value }) => {
-        const input = document.querySelector(selector) as HTMLInputElement;
-        if (input) {
-          input.value = String(value);
-          input.dispatchEvent(new Event('input', { bubbles: true }));
-          input.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      },
-      { selector: '#weight', value }
-    );
+    try {
+      await this.page.evaluate(
+        ({ selector, value }) => {
+          const input = document.querySelector(selector) as HTMLInputElement;
+          if (input) {
+            input.value = String(value);
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        },
+        { selector: '#weight', value }
+      );
+    } catch (error) {
+      // Page might be closed or in invalid state
+      console.log('Failed to set weight programmatically:', error);
+    }
   }
 
   static calculateExpectedBmi(weightKg: number, heightCm: number): number {

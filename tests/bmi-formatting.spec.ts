@@ -12,7 +12,7 @@ test.describe('BMI Calculator - Acceptance Criteria #2', () => {
     await TestHelpers.waitForStablePage(page);
   });
 
-  test('should display BMI with one decimal place', async ({ page }) => {
+  test('should display BMI with one decimal place', { tag: ['@smoke'] }, async ({ page }) => {
     const testCases = [
       { weight: 70, height: 175 },
       { weight: 80, height: 180 },
@@ -26,12 +26,12 @@ test.describe('BMI Calculator - Acceptance Criteria #2', () => {
       await bmiPage.enterWeight(testCase.weight);
       await bmiPage.clickCalculate();
 
-      await bmiPage.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+      await bmiPage.waitForBmiResult();
 
       const bmiText = await bmiPage.getBmiText();
       const formatMatch = bmiText.match(/Your BMI is (\d+)\.(\d) kg\/m2/);
       expect(formatMatch, `BMI should be displayed with one decimal place: ${bmiText}`).not.toBeNull();
-      expect(bmiText).toContain('kg/m2');
+      expect(bmiText, 'BMI text should contain kg/m2 unit').toContain('kg/m2');
     }
   });
 });

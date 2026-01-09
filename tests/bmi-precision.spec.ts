@@ -12,7 +12,7 @@ test.describe('BMI Calculator - Acceptance Criteria #3', () => {
     await TestHelpers.waitForStablePage(page);
   });
 
-  test('should use full precision for calculations and round only for display', async ({ page }) => {
+  test('should use full precision for calculations and round only for display', { tag: ['@regression'] }, async ({ page }) => {
     const testCases = [
       { weight: 70, height: 175 }, // BMI = 22.857142857...
       { weight: 80, height: 180 }, // BMI = 24.691358024...
@@ -24,7 +24,7 @@ test.describe('BMI Calculator - Acceptance Criteria #3', () => {
       await bmiPage.enterWeight(testCase.weight);
       await bmiPage.clickCalculate();
 
-      await bmiPage.bmiValue.waitFor({ state: 'visible', timeout: 5000 });
+      await bmiPage.waitForBmiResult();
 
       const fullPrecisionBmi = BmiCalculatorPage.calculateExpectedBmi(
         testCase.weight,
@@ -34,11 +34,10 @@ test.describe('BMI Calculator - Acceptance Criteria #3', () => {
       const displayedBmi = await bmiPage.getBmiValue();
 
       const expectedRounded = Math.round(fullPrecisionBmi * 10) / 10;
-      expect(displayedBmi).toBe(expectedRounded);
+      expect(displayedBmi, `Displayed BMI should be rounded version of full precision: ${fullPrecisionBmi}`).toBe(expectedRounded);
 
-      // proving it's not rounded internally
       const decimalPlaces = (fullPrecisionBmi.toString().split('.')[1] || '').length;
-      expect(decimalPlaces).toBeGreaterThan(1);
+      expect(decimalPlaces, 'Full precision calculation should have more than 1 decimal place').toBeGreaterThan(1);
     }
   });
 });

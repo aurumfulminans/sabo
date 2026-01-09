@@ -86,6 +86,13 @@
         "description": "Non-numeric weight",
         "requiresProgrammatic": true,
         "shouldCalculate": false
+      },
+      {
+        "height": -170,
+        "weight": -70,
+        "description": "Both negative inputs",
+        "requiresProgrammatic": false,
+        "shouldCalculate": false
       }
     ],
     "boundaryTests": [
