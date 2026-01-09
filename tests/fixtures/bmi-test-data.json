@@ -1,0 +1,122 @@
+{
+  "testData": {
+    "validBMITests": [
+      {
+        "height": 170,
+        "weight": 70,
+        "unit": "metric",
+        "expectedBMI": 24.22,
+        "category": "Normal weight"
+      },
+      {
+        "height": 180,
+        "weight": 56,
+        "unit": "metric", 
+        "expectedBMI": 17.28,
+        "category": "Underweight"
+      },
+      {
+        "height": 170,
+        "weight": 80,
+        "unit": "metric",
+        "expectedBMI": 27.68,
+        "category": "Overweight"
+      },
+      {
+        "height": 165,
+        "weight": 95,
+        "unit": "metric",
+        "expectedBMI": 34.90,
+        "category": "Obese"
+      }
+    ],
+    "invalidInputTests": [
+      {
+        "height": 0,
+        "weight": 70,
+        "description": "Zero height",
+        "requiresProgrammatic": false,
+        "shouldCalculate": false
+      },
+      {
+        "height": 170,
+        "weight": 0,
+        "description": "Zero weight",
+        "requiresProgrammatic": false,
+        "shouldCalculate": false
+      },
+      {
+        "height": -170,
+        "weight": 70,
+        "description": "Negative height",
+        "requiresProgrammatic": false,
+        "shouldCalculate": false
+      },
+      {
+        "height": 170,
+        "weight": -70,
+        "description": "Negative weight",
+        "requiresProgrammatic": false,
+        "shouldCalculate": false
+      },
+      {
+        "height": "",
+        "weight": 70,
+        "description": "Empty height",
+        "requiresProgrammatic": true,
+        "shouldCalculate": false
+      },
+      {
+        "height": 170,
+        "weight": "",
+        "description": "Empty weight",
+        "requiresProgrammatic": true,
+        "shouldCalculate": false
+      },
+      {
+        "height": "abc",
+        "weight": 70,
+        "description": "Non-numeric height",
+        "requiresProgrammatic": true,
+        "shouldCalculate": false
+      },
+      {
+        "height": 170,
+        "weight": "xyz",
+        "description": "Non-numeric weight",
+        "requiresProgrammatic": true,
+        "shouldCalculate": false
+      }
+    ],
+    "boundaryTests": [
+      {
+        "height": 10,
+        "weight": 70,
+        "description": "Unrealistic height (too low) - business logic gap: app calculates anyway",
+        "requiresProgrammatic": false,
+        "shouldCalculate": true
+      },
+      {
+        "height": 300,
+        "weight": 70,
+        "description": "Unrealistic height (too high) - business logic gap: app calculates anyway",
+        "requiresProgrammatic": false,
+        "shouldCalculate": true
+      },
+      {
+        "height": 175,
+        "weight": 5,
+        "description": "Unrealistic weight (too low) - business logic gap: app calculates anyway",
+        "requiresProgrammatic": false,
+        "shouldCalculate": true
+      },
+      {
+        "height": 175,
+        "weight": 500,
+        "description": "Unrealistic weight (too high) - business logic gap: app calculates anyway",
+        "requiresProgrammatic": false,
+        "shouldCalculate": true
+      }
+    ]
+  }
+}
