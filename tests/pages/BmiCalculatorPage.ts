@@ -21,11 +21,13 @@ export class BmiCalculatorPage {
       .locator('..');
     
     this.bmiValue = page.locator('text=/Your BMI is \\d+\\.?\\d*/');
-    // Category will be extracted from BMI result text
+    // category will be extracted from BMI result text
     
-    this.clearButton = page.locator('button:has-text("Clear"), button[onclick*="clear" i]').first();
+    // using semantic selector - most precise
+    this.clearButton = page.getByRole('button', { name: /clear/i });
     
-    this.errorMessage = page.locator('.alert, .error, [role="alert"], .text-danger, .invalid-feedback').first();
+    // using most semantic error selector (role="alert" is accessibility standard)
+    this.errorMessage = page.locator('[role="alert"]');
   }
 
   async goto() {
@@ -59,7 +61,6 @@ export class BmiCalculatorPage {
   }
 
   async getBmiCategory(): Promise<string> {
-    // Extract category from BMI result text like "Your BMI is 24.2 kg/m2 (Normal)"
     const text = await this.getBmiText();
     const match = text.match(/\(([^)]+)\)/);
     return match ? match[1] : '';
@@ -122,28 +123,28 @@ export class BmiCalculatorPage {
 
   async clearHeight() {
     try {
-      // Try standard clear first
+      // try standard clear first
       await this.heightInput.clear();
     } catch {
-      // If that fails, use programmatic clearing for required number inputs
+      // if that fails, use programmatic clearing for required number inputs
       try {
         await this.setHeightProgrammatically('');
       } catch {
-        // Page might be closed, ignore
+        // page might be closed, ignore
       }
     }
   }
 
   async clearWeight() {
     try {
-      // Try standard clear first
+      // try standard clear first
       await this.weightInput.clear();
     } catch {
-      // If that fails, use programmatic clearing for required number inputs
+      // ff that fails, use programmatic clearing for required number inputs
       try {
         await this.setWeightProgrammatically('');
       } catch {
-        // Page might be closed, ignore
+        // page might be closed, ignore
       }
     }
   }
@@ -181,7 +182,7 @@ export class BmiCalculatorPage {
         { selector: '#weight', value }
       );
     } catch (error) {
-      // Page might be closed or in invalid state
+      // page might be closed or in invalid state
       console.log('Failed to set weight programmatically:', error);
     }
   }

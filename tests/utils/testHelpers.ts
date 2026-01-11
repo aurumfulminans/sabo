@@ -78,9 +78,6 @@ export class TestHelpers {
       // Wait for network to be idle
       await page.waitForLoadState('networkidle', { timeout });
       
-      // Wait a bit more for any delayed popups
-      await page.waitForTimeout(1000);
-      
       // Handle any remaining popups
       await this.handlePopups(page);
       
@@ -122,11 +119,16 @@ export class TestHelpers {
 
     for (const selector of popupSelectors) {
       try {
-        const element = page.locator(selector).first();
-        if (await element.isVisible({ timeout: 500 })) {
-          await element.click({ timeout: 1000 });
-          console.log(`Closed popup with selector: ${selector}`);
-          await page.waitForTimeout(300);
+        const element = page.locator(selector);
+        const count = await element.count();
+        if (count > 0) {
+          const firstElement = element.first();
+          if (await firstElement.isVisible({ timeout: 500 })) {
+            await firstElement.click({ timeout: 1000 });
+            console.log(`Closed popup with selector: ${selector}`);
+            // Wait for popup to disappear instead of fixed timeout
+            await firstElement.waitFor({ state: 'hidden', timeout: 1000 }).catch(() => {});
+          }
         }
       } catch (error) {
         // Continue to next selector

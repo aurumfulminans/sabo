@@ -4,19 +4,19 @@ import { BmiCalculatorPage } from './pages/BmiCalculatorPage';
 import { loadBMITestData } from './utils/testDataLoader';
 
 test.describe('BMI Calculator - Acceptance Criteria #1', () => {
-  let bmiPage: BmiCalculatorPage;
   const testData = loadBMITestData();
 
   test.beforeEach(async ({ page }) => {
     await TestHelpers.setupAdBlocking(page);
-    bmiPage = new BmiCalculatorPage(page);
+    const bmiPage = new BmiCalculatorPage(page);
     await bmiPage.goto();
     await TestHelpers.waitForStablePage(page);
   });
 
-  test('should calculate BMI correctly using formula: weight_kg / (height_m)^2', { tag: ['@smoke'] }, async ({ page }) => {
-    for (const testCase of testData.testData.validBMITests) {
-      // clear inputs before each test case
+  for (const testCase of testData.testData.validBMITests) {
+    test(`should calculate BMI correctly for height ${testCase.height} cm, weight ${testCase.weight} kg (${testCase.category})`, { tag: ['@smoke'] }, async ({ page }) => {
+      const bmiPage = new BmiCalculatorPage(page);
+      
       await bmiPage.clearHeight();
       await bmiPage.clearWeight();
       
@@ -36,12 +36,13 @@ test.describe('BMI Calculator - Acceptance Criteria #1', () => {
 
       expect(displayedBmi, `BMI value should match expected for height ${testCase.height}cm, weight ${testCase.weight}kg`).toBeCloseTo(expectedBmi, 1);
       expect(expectedBmi, `Expected BMI should match test data`).toBeCloseTo(testCase.expectedBMI, 1);
-      // Verify category is displayed (app may use different terminology like "mild thinness" vs "Underweight")
+      // verify category is displayed (app may use different terminology like "mild thinness" vs "Underweight")
       expect(displayedCategory, `BMI category should be displayed for ${testCase.category}`).not.toBe('');
-    }
-  });
+    });
+  }
 
   test('should handle height conversion from cm to meters correctly', { tag: ['@regression'] }, async ({ page }) => {
+    const bmiPage = new BmiCalculatorPage(page);
     const weight = 70;
     const heightCm = 175;
     const expectedHeightM = 1.75;
